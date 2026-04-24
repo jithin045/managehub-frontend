@@ -2,12 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { getAllShops } from "../../services/shop.service";
+import { getAllUsers } from "../../services/user.service";
 import DashboardShell from "../../components/dashboard/DashboardShell";
 import StatsCard from "../../components/dashboard/StatsCard";
 import RevenueChart from "../../components/dashboard/RevenueChart";
 import { Building2, Users, ShoppingBag, Plus, MoreHorizontal, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Shop } from "../../types";
+import Link from "next/link";
 
 import {
     Table,
@@ -45,13 +47,18 @@ const item = {
 
 export default function AdminDashboard() {
     const [shops, setShops] = useState<Shop[]>([]);
+    const [userCount, setUserCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const load = async () => {
             try {
-                const data = await getAllShops();
-                setShops(data.shops || []);
+                const [shopData, userData] = await Promise.all([
+                    getAllShops(),
+                    getAllUsers()
+                ]);
+                setShops(shopData.shops || []);
+                setUserCount(userData.users?.length || 0);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -90,7 +97,7 @@ export default function AdminDashboard() {
                     />
                     <StatsCard
                         title="Total Users"
-                        value="842"
+                        value={loading ? "..." : userCount.toString()}
                         icon={Users}
                         trend="up"
                         trendValue={8}
@@ -151,9 +158,9 @@ export default function AdminDashboard() {
                                 <CardTitle className="text-xl font-bold">Global Registry</CardTitle>
                                 <CardDescription>Detailed overview of all platform shops.</CardDescription>
                             </div>
-                            <button className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-                                <MoreHorizontal className="w-5 h-5 text-text-secondary" />
-                            </button>
+                            <Link href="/dashboard/users" className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-bold hover:bg-white/10 transition-all text-text-secondary hover:text-text-primary">
+                                Manage Users
+                            </Link>
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="overflow-x-auto">
